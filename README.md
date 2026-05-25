@@ -57,7 +57,7 @@ gpsd_options: "-n"
 
 ## Testing
 
-From another machine on the same network (requires the `gpsd-clients` package):
+From another machine on the same network (install clients first: **Debian/Ubuntu** `sudo apt install gpsd-clients`, **macOS** `brew install gpsd`, **Fedora** `sudo dnf install gpsd-clients`):
 
 ```bash
 # Interactive GPS monitor
@@ -67,17 +67,19 @@ cgps -s <HA-IP>:2947
 gpspipe -w -n 5 <HA-IP>:2947
 ```
 
-Replace `<HA-IP>` with the IP address of your Home Assistant instance.
+Replace `<HA-IP>` with the **host only** — the same address you use in the browser to open Home Assistant (no `http://`, no path). For example, if the UI is at `http://192.168.1.2:8123/...`, use `192.168.1.2`. That is also the value to use as **Host** in the GPSd integration below.
 
 ## Troubleshooting
 
 ### "GPS device not found"
-- Verify the device is plugged in and detected: `ls /dev/ttyUSB*`
+- Verify the device is plugged in and detected: `ls /dev/ttyUSB* /dev/ttyACM*`
 - Try the `/dev/serial/by-id/` path instead
 - Check the add-on configuration for typos in the device path
 
-### "Permission denied"
-- The add-on already requests device access. If you changed the device path, make sure it is also listed in `config.yaml` under `devices:`.
+### "Operation not permitted" or "Permission denied" on the serial device
+- The Supervisor only passes through host devices listed in the add-on manifest (`devices:` in `gpsd/config.yaml`). This repository includes **`/dev/ttyUSB0`** and **`/dev/ttyACM0`** (most u-blox modules enumerate as `ttyACM0`).
+- If your receiver is on **`ttyACM0`**, set the add-on **device** option to **`/dev/ttyACM0`**, or use your `/dev/serial/by-id/...` path if it resolves correctly inside the container.
+- If you still see permission errors, confirm you are on the latest add-on build (rebuild or reinstall after a repo update) so the new `devices:` list is applied.
 
 ### No GPS fix
 - Make sure the antenna has a clear view of the sky
@@ -92,9 +94,11 @@ Once the add-on is running, you can connect it to the built-in [GPSd integration
 1. Go to **Settings → Devices & Services → Add Integration**
 2. Search for **GPSd** and select it
 3. Enter the following:
-   - **Host**: `127.0.0.1` (localhost)
+   - **Host**: your Home Assistant machine's **LAN IP address** (e.g. `192.168.1.50`), **not** `127.0.0.1`. Home Assistant Core runs in its own container; `localhost` there is not the gpsd add-on. On Home Assistant OS / Supervised, use the same IP you use in the browser to open HA. ([Community note](https://community.home-assistant.io/t/gpsd-custom-add-on-not-seen-by-home-assistant-in-hassos/561110))
    - **Port**: `2947`
 4. Click **Submit**
+
+If entities stay empty or **mode** stays **Unknown**, wait for a satellite fix near a window or outside (often 30–60+ seconds). **Unknown** is normal until gpsd reports a fix.
 
 The integration will create a `sensor.gpsd` entity with attributes including:
 - **Latitude / Longitude**
