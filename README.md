@@ -77,7 +77,7 @@ Replace `<HA-IP>` with the **host only** — the same address you use in the bro
 - Check the add-on configuration for typos in the device path
 
 ### "Operation not permitted" or "Permission denied" on the serial device
-- The Supervisor only passes through host devices listed in the add-on manifest (`devices:` in `gpsd/config.yaml`). This repository includes **`/dev/ttyUSB0`** and **`/dev/ttyACM0`** (most u-blox modules enumerate as `ttyACM0`).
+- The Supervisor only passes through USB and UART devices from the host, make sure you are selecting the correct device in the add-on options.
 - If your receiver is on **`ttyACM0`**, set the add-on **device** option to **`/dev/ttyACM0`**, or use your `/dev/serial/by-id/...` path if it resolves correctly inside the container.
 - If you still see permission errors, confirm you are on the latest add-on build (rebuild or reinstall after a repo update) so the new `devices:` list is applied.
 

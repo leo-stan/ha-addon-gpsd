@@ -16,15 +16,14 @@ ports:
   2947/tcp: 2947
 ports_description:
   2947/tcp: "gpsd TCP port"
-devices:
-  - /dev/ttyUSB0
-  - /dev/ttyACM0
+usb: true
+uart: true
 udev: true
 options:
-  device: /dev/ttyUSB0
+  device: null
   baud: 9600
   gpsd_options: "-n"
 schema:
-  device: str
+  device: device(subsystem=tty)
   baud: int
   gpsd_options: str
